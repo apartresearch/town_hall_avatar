@@ -3,8 +3,15 @@ Create a secrets.json:
 ```json
 {
     "bot_token": "",
-    "oauth2_client_id": ""
+    "discord_channel_id": "1089567159329505462",
+    "oauth2_client_id": "",
+    "oauth2_client_secret": "",
+    "openai_key": ""
 }
 ```
 
-Run `get_oauth_url.py`
+Run `get_oauth_url.py`. Send the URL to the server owner and get them to click through the flow to accept the bot into the server.
+
+You'll need `requests` installed.
+
+Run `bot.py`

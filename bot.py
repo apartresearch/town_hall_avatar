@@ -1,5 +1,5 @@
 import json
-import requests
+import openai
 import discord
 
 API_ENDPOINT = 'https://discord.com/api/v10'
@@ -7,6 +7,7 @@ API_ENDPOINT = 'https://discord.com/api/v10'
 with open('secrets.json') as f:
     secrets = json.load(f)
 
+openai.api_key = secrets['openai_key']
 token = secrets['bot_token']
 channel_id = secrets['discord_channel_id']
 
@@ -28,9 +29,13 @@ class MyBot(discord.Client):
         if str(message.channel.id) != channel_id:   # Only listen to the given channel
             return
 
-        # Log the message content to the console
-        print(f"Received message: {message.type} `{message.content}`")
-        await message.channel.send('gotcha')
+        msg = message.content
+        if msg.startswith('!gpt '):
+            reply = openai.ChatCompletion.create(model="gpt-4", messages = [
+                    {"role": "user", "content": msg}
+            ])
+            print(json.dumps(reply, indent=4))
+            #await message.channel.send(json.dumps(reply))
 
 # Instantiate your custom client class
 client = MyBot()

@@ -12,6 +12,6 @@ Create a secrets.json:
 
 Run `get_oauth_url.py`. Send the URL to the server owner and get them to click through the flow to accept the bot into the server.
 
-You'll need `requests` installed.
+You'll need `discord` and `openai` packages installed and up to date.
 
 Run `bot.py`

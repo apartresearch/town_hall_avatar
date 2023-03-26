@@ -17,13 +17,16 @@ class MyBot(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents(messages=True, message_content=True))
         self.avatars = []
+        self.introductions = {}
         self.topic = None
         self.conversation = [
+            {"role":"system","content":"You are TownHallBot. Your role is to predict what different people will say on a given topic. Feel free to make the characters assertive and the conversations spicy!"}
         ]
         self.next_message = ''
         i = 0
         while True:
             self.state_file = f'state{i}.json'
+            self.state_i = i
             if not os.path.exists(self.state_file):
                 break
             i += 1
@@ -37,6 +40,7 @@ class MyBot(discord.Client):
             raise ValueError(f"Name {name} already exists")
         self.next_message += f"A new person has joined the discussion, called {name}. {introduction}\n\n"
         self.avatars.append(name)
+        self.introductions[name] = introduction
 
     def set_topic(self, topic):
         print(f"SET_TOPIC {topic}")
@@ -56,7 +60,7 @@ class MyBot(discord.Client):
 
     def get_avatar_reply(self, avatars):
         avatar_list = ' and '.join(random.sample(avatars, k=len(avatars)))
-        self.next_message += f'What would {avatar_list} say on the topic?'
+        self.next_message += f'What would {avatar_list} say on the topic, in one sentence per person?'
         reply = self._flush()
         return reply
 
@@ -80,7 +84,8 @@ class MyBot(discord.Client):
                 'conversation': self.conversation,
                 'topic': self.topic,
                 'avatars': self.avatars,
-                'next_message': self.next_message
+                'introductions': self.introductions,
+                'next_message': self.next_message,
             }, f, indent=4)
 
     def _reload(self, i):
@@ -90,10 +95,15 @@ class MyBot(discord.Client):
         self.topic = state['topic']
         self.avatars = state['avatars']
         self.next_message = state['next_message']
+        self.introductions = state.get('introductions',{})
 
     async def on_message(self, message):
         # Don't respond to messages from the bot itself
         if message.author == self.user:
+            return
+
+        if message.author.bot:
+            print("Ignoring bot message.")
             return
 
         if message.type != discord.MessageType.default:
@@ -108,11 +118,17 @@ class MyBot(discord.Client):
         if len(words) == 0:
             return
 
-        if words[0] == '!avatar':
-            if len(words) >= 2:
+        if words[0] == '!av':
+            if len(words) >= 3:
                 self.add_avatar(words[1], ' '.join(words[1:]))
+            elif len(words) == 1:
+                msg = 'Avatars:\n'
+                for av in self.avatars:
+                    intro = self.introductions.get(av, 'unknown')
+                    msg += f'{av}: {intro}\n'
+                await message.channel.send(msg)
             else:
-                await message.channel.send(f'Avatars: {self.avatars}')
+                await message.channel.send(f'You need to give a description of {words[1]}')
         elif words[0] == '!topic':
             if len(words) >= 2:
                 self.set_topic(' '.join(words[1:]))
@@ -124,12 +140,15 @@ class MyBot(discord.Client):
         elif not words[0].startswith('!'):
             self.append_message(author, ' '.join(words[1:]))
             avatars = self.avatars
-            reply = self.get_avatar_reply(avatars)
-            await message.channel.send(reply)
+            async with message.channel.typing():
+                reply = self.get_avatar_reply(avatars)
+                await message.channel.send(reply)
         else:
             print(f'Unhandled: {words[0]}')
             return
 
+        if not os.path.exists(self.state_file):
+            await message.channel.send(f'(creating state file {self.state_i})')
         self._store_state()
 
 # Instantiate your custom client class

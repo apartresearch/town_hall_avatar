@@ -54,8 +54,9 @@ class MyBot(discord.Client):
     def random_avatar(self):
         return random.choice(self.avatars)
 
-    def get_avatar_reply(self, avatar):
-        self.next_message += f'What would {avatar} say on the topic?'
+    def get_avatar_reply(self, avatars):
+        avatar_list = ' and '.join(random.sample(avatars, k=len(avatars)))
+        self.next_message += f'What would {avatar_list} say on the topic?'
         reply = self._flush()
         return reply
 
@@ -122,9 +123,9 @@ class MyBot(discord.Client):
             await message.channel.send('State reloaded')
         elif not words[0].startswith('!'):
             self.append_message(author, ' '.join(words[1:]))
-            avatar = self.random_avatar()
-            reply = self.get_avatar_reply(avatar)
-            await message.channel.send(f'[{avatar}] {reply}')
+            avatars = self.avatars
+            reply = self.get_avatar_reply(avatars)
+            await message.channel.send(reply)
         else:
             print(f'Unhandled: {words[0]}')
             return

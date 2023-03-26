@@ -49,8 +49,15 @@ class MyBot(discord.Client):
         if message.author == self.user:
             return
 
+        if message.type != discord.MessageType.default:
+            return
+
+        if str(message.channel.id) != channel_id:   # Only listen to the given channel
+            return
+
         # Log the message content to the console
         print(f"Received message: {message.type} `{message.content}`")
+        await message.channel.send('gotcha')
 
 # Instantiate your custom client class
 client = MyBot()

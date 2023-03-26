@@ -5,6 +5,7 @@ import os
 import random
 
 API_ENDPOINT = 'https://discord.com/api/v10'
+SYSTEM_MSG = "You are TownHallBot. Your role is to predict what different people will say on a given topic. Feel free to make the characters assertive and the conversations spicy!"
 
 with open('secrets.json') as f:
     secrets = json.load(f)
@@ -20,7 +21,7 @@ class MyBot(discord.Client):
         self.introductions = {}
         self.topic = None
         self.conversation = [
-            {"role":"system","content":"You are TownHallBot. Your role is to predict what different people will say on a given topic. Feel free to make the characters assertive and the conversations spicy!"}
+            {"role":"system","content":SYSTEM_MSG}
         ]
         self.next_message = ''
         i = 0
@@ -97,6 +98,15 @@ class MyBot(discord.Client):
         self.next_message = state['next_message']
         self.introductions = state.get('introductions',{})
 
+    def _reload_empty(self):
+        self.conversation = [
+            {"role":"system","content":SYSTEM_MSG}
+        ]
+        self.topic = None
+        self.avatars = []
+        self.next_message = ''
+        self.introductions = {}
+
     async def on_message(self, message):
         # Don't respond to messages from the bot itself
         if message.author == self.user:
@@ -135,11 +145,20 @@ class MyBot(discord.Client):
             else:
                 await message.channel.send(f'Current topic: {self.topic}')
         elif words[0] == '!reload':
-            self._reload(int(words[1]))
+            if len(words) >= 2:
+                self._reload(int(words[1]))
+            else:
+                self._reload_empty()
             await message.channel.send('State reloaded')
+            return
         elif not words[0].startswith('!'):
             self.append_message(author, ' '.join(words[1:]))
             avatars = self.avatars
+            for av in self.avatars:
+                if words[0] == av or words[0] == f'{av},' or words[0] == f'{av}:':
+                    avatars = [av]
+                    break
+
             async with message.channel.typing():
                 reply = self.get_avatar_reply(avatars)
                 await message.channel.send(reply)

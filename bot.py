@@ -123,7 +123,7 @@ class MyBot(discord.Client):
             return
 
         words = message.content.split(' ')
-        author = message.author.name
+        author = message.author.display_name
 
         if len(words) == 0:
             return

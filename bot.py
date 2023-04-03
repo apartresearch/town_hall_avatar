@@ -111,6 +111,22 @@ class MyBot(discord.Client):
         self.avatars = []
         self.next_message = ''
         self.introductions = {}
+        
+    def _invent(self, keywords):
+        if len(keywords) == 0:
+            self.next_message += "Who would be a good person to add to the townhall? Invent a character that would offer a valuable, contrasting perspective from those already present. Give their name first and then a description, 3-5 sentences."
+        else:
+            keyword_string = ' '.join(keywords)
+            self.next_message += f"""Invent a character based on the keywords "{keyword_string}". Give their name first and then a desccription, 3-5 sentences."""
+        content = self._flush()
+        print("\nInvention response:")
+        print(content)
+        print("==================\n")
+        words = content.split(' ')
+        for i in range(words):
+            if words[i][0] >= 'A' and words[i][0] <= 'Z':   # Find something that vaguely looks like a name?
+                return words[i], ' '.join(words[i+1:])
+        raise Exception(f"Unable to parse response: {content}")
 
     async def on_message(self, message):
         # Don't respond to messages from the bot itself
@@ -144,6 +160,10 @@ class MyBot(discord.Client):
                 await message.channel.send(msg)
             else:
                 await message.channel.send(f'You need to give a description of {words[1]}')
+        elif words[0] == '!invent':
+            name, introduction = self.invent(words[1:])
+            await message.channel.send(f'{name} {introduction}')
+            self.add_avatar(name, introduction)
         elif words[0] == '!retire':
             if len(words) == 2:
                 if words[1] in self.avatars:

@@ -60,8 +60,13 @@ class MyBot(discord.Client):
         return random.choice(self.avatars)
 
     def get_avatar_reply(self, avatars):
-        avatar_list = ' and '.join(random.sample(avatars, k=len(avatars)))
-        self.next_message += f'What would {avatar_list} say on the topic, in one sentence per person?'
+        if len(avatars) == 0:
+            raise ValueError("No avatars")
+        elif len(avatars) == 1:
+            self.next_message += f'What would {avatars[0]} say on the topic?'
+        else:
+            avatar_list = ' and '.join(random.sample(avatars, k=len(avatars)))
+            self.next_message += f'Out of {avatar_list} pick one or more people who would have an interesting and unique perspective on this. What would they say on the topic?'
         reply = self._flush()
         return reply
 
@@ -122,7 +127,7 @@ class MyBot(discord.Client):
         if str(message.channel.id) != channel_id:   # Only listen to the given channel
             return
 
-        words = message.content.split(' ')
+        words = message.content.replace('"',"'").split(' ')
         author = message.author.display_name
 
         if len(words) == 0:

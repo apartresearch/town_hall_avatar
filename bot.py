@@ -124,7 +124,7 @@ class MyBot(discord.Client):
         print("==================\n")
         words = content.split(' ')
         for i in range(len(words)):
-            if words[i][0] >= 'A' and words[i][0] <= 'Z':   # Find something that vaguely looks like a name?
+            if words[i][0] >= 'A' and words[i][0] <= 'Z' and words[i].lowerw() not in ['name']:   # Find something that vaguely looks like a name?
                 return words[i], ' '.join(words[i+1:])
         raise Exception(f"Unable to parse response: {content}")
 

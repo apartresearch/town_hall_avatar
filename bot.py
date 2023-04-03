@@ -164,9 +164,10 @@ class MyBot(discord.Client):
             else:
                 await message.channel.send(f'You need to give a description of {words[1]}')
         elif words[0] == '!invent':
-            name, introduction = self._invent(words[1:])
-            await message.channel.send(f'{name} {introduction}')
-            self.add_avatar(name, introduction)
+            async with message.channel.typing():
+                name, introduction = self._invent(words[1:])
+                await message.channel.send(f'{name} {introduction}')
+                self.add_avatar(name, introduction)
         elif words[0] == '!retire':
             if len(words) == 2:
                 if words[1] in self.avatars:

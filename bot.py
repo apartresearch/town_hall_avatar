@@ -3,6 +3,7 @@ import openai
 import discord
 import os
 import random
+import re
 
 API_ENDPOINT = 'https://discord.com/api/v10'
 SYSTEM_MSG = "You are TownHallBot. Your role is to predict what different people will say on a given topic. Feel free to make the characters assertive and the conversations spicy!"
@@ -13,6 +14,8 @@ with open('secrets.json') as f:
 openai.api_key = secrets['openai_key']
 token = secrets['bot_token']
 channel_id = secrets['discord_channel_id']
+
+re_bad_names = re.compile(r'^name.*')
 
 class MyBot(discord.Client):
     def __init__(self):
@@ -124,7 +127,7 @@ class MyBot(discord.Client):
         print("==================\n")
         words = content.split(' ')
         for i in range(len(words)):
-            if words[i][0] >= 'A' and words[i][0] <= 'Z' and words[i].lower() not in ['name']:   # Find something that vaguely looks like a name?
+            if words[i][0] >= 'A' and words[i][0] <= 'Z' and not re_bad_names.match(words[i].lower()):   # Find something that vaguely looks like a name?
                 return words[i], ' '.join(words[i+1:])
         raise Exception(f"Unable to parse response: {content}")
 

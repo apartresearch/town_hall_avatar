@@ -139,6 +139,15 @@ class MyBot(discord.Client):
                 await message.channel.send(msg)
             else:
                 await message.channel.send(f'You need to give a description of {words[1]}')
+        elif words[0] == '!retire':
+            if len(words) == 2:
+                if words[1] in self.avatars:
+                    self.avatars.remove(words[1])
+                    await message.channel.send(f'{words[1]} has left the discussion.')
+                else:
+                    await message.channel.send(f'{words[1]} is not an avatar')
+            else:
+                await message.channel.send(f'Usage: retire <name>')
         elif words[0] == '!topic':
             if len(words) >= 2:
                 self.set_topic(' '.join(words[1:]))

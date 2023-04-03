@@ -152,16 +152,24 @@ class MyBot(discord.Client):
             await message.channel.send('State reloaded')
             return
         elif not words[0].startswith('!'):
-            self.append_message(author, ' '.join(words[1:]))
-            avatars = self.avatars
-            for av in self.avatars:
-                if words[0] == av or words[0] == f'{av},' or words[0] == f'{av}:':
-                    avatars = [av]
-                    break
+            try:
+                self.append_message(author, ' '.join(words[1:]))
+                avatars = self.avatars
+                for av in self.avatars:
+                    if words[0] == av or words[0] == f'{av},' or words[0] == f'{av}:':
+                        avatars = [av]
+                        break
 
-            async with message.channel.typing():
-                reply = self.get_avatar_reply(avatars)
-                await message.channel.send(reply)
+                if len(avatars) == 0:
+                    await message.channel.send(f'No avatars')
+                    return
+
+                async with message.channel.typing():
+                    reply = self.get_avatar_reply(avatars)
+                    await message.channel.send(reply)
+            except Exception as e:
+                await message.channel.send(f'{type(e)}: {e}')
+                return
         else:
             print(f'Unhandled: {words[0]}')
             return
